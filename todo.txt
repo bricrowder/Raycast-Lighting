@@ -1,0 +1,165 @@
+Level Layout Engine:
+    DONE!  Maze generator
+    DONE!  Maze Solver and Path Lists
+    DONE!  Maze start and end determinator
+    DONE!  Door locations
+    DONE!  Locked Doors
+    DONE!  Key locations
+    DONE!  Basic Collision System for level tiles
+    DONE!  Cell Visibility
+    
+    change the system...
+
+    each cell holds a NxN grid of tiles...
+        16x16 (grid) = 512 (cell) x 32 (tile) seems to be a nice 
+            this should be controlled by the game/level/texture config files and drawn to scale appropriately
+        to fill it in use cellular automata or random connected rectangles or whatever... maybe randomly both.
+            cellular automata - fill in cells with random y/n and clear the doors with n.
+        it uses square tiles for floors, walls, etc.
+        think about the scaling of the tiles, cells and resolution... it should work out with the current system though
+        we can reuse a lot of the texture/tiling code... but not all of it as it won't be wall based anymore
+        probably can't use the collision code...
+        the collisions will be baked into poly's or edges... - think about how this will be done... 
+            or each tile just has its own collision poly like the current system???  that isn't ideal I don't think.
+
+        lighting system may not need to be changed... except you only need to pull points from current cell and any adjacent cell that is open to it
+            it should otherwise work??
+
+        the NxN grids
+
+    The lighting will be the same as well.
+
+
+
+    Door state (open, closed, locked, unlocked)
+    Add doors to tilesets
+    Add keys to tilesets
+    Add decals to tilesets
+    Go over level object and refine available data and get/set functions
+
+    Clutter Graphics
+    Clutter Placement Logic
+
+    Enemy Spawning
+    Enemy Movement Logic
+    Enemy Shooting Logic
+
+
+    Cell / Tile presets (e.g. pre-determined floor, exterior wall, etc for an airlock... )
+    Add base brightness/colour to level and add lights to cells
+
+
+    get cells in camera
+    get points of shapes in cells
+    shoot rays to the points
+    sort the hit results
+    does the first hit = one of the points? i.e. is it visible to the origin?
+        yes - keep ray/hits
+        no - drop
+    for all kept rays/hits
+        using angle of ray project point out...
+        p1 = hit xy
+        p2 = projected xy
+
+
+
+
+
+Drawing
+
+    Layer 1: level "tiles"
+        Pre-baked frames (canvas in love2d) that has all of the generated floors, walls, decals, door frames.  everything that is static.
+        This is essentially done... just need to do decals mainly
+            Prebake the normal map
+    Layer 3: objects
+        player, enemies, doors, projectiles, other objects.  These are dynamic in nature, i.e. not static
+        none of this is done, many of the objects could be animated...
+            Bake the normals of the objects, etc. onto the cell normal map
+    Layer 4: lighting
+        lighting from any source.  This could be a stationary light, light emitted from a projectile, etc.
+        this affects the colouring of layer 1 and 2.
+        This can be a frame baked during runtime.  a canvas can be overlayed on the tile with a subtractive (or whatever one that works, can't remember).
+        How the canvas is generated to be deterimed.  can be based on pre-drawn png files (cpu) or calculated via shaders (gpu).
+        It should only need to be done on tiles that are visible and in the camera... so not the whole level.
+        It should also be done on any adjacent cells (or determined if it needs to be) as there may be some spill over of light that originates from another cell.  I think this may need to be done even for visible cells... so render the light of the current cell and points from the 4 adjacent cells in case the lights spill on... it shouldn't duplicate the light because the final baked light mask/canvas or whatever is limited to the dimensions of the canvas.
+    Layer 2a: level "tiles" Visibility
+        ray casting, polygon drawing to canvas
+
+    Layer 5: level "ceiling"
+        Pre-baked frames (canvas in love2d) that has all of the artifacts that would show up on a ceiling... pipes, ducts, light fixtures, etc... 
+
+
+Ideas!
+    Doors are force fields that turn off... as you approach them (blue or green), are locked (red)
+    The level is timed...
+    Local/network coop??  what would that really look like?
+
+
+
+
+
+
+Level Collisions
+    json data of polygon points
+    there can be multiple poly's per tile
+        1 door = 1 poly (or two if it can't reach)
+        2 doors = 2
+        3 doors = 3
+        4 doors = 4
+
+    tile collision editor
+        settings include tile size (WxH) - eg 512x512
+        whole file is loaded, first tile is selected (index 1,1)
+        collision json is loaded if there is one
+            use lua file functions so you aren't restricted to the love file locations
+            build array of collision points or an empty array Tile[i] = {}
+        arrow keys are used to select tiles (left, right, up, down)
+        tile index is serial:  (J-1) * #TILE[I] + I
+
+        displays tile on screen
+        using the mouse, you can add chain points:
+            first point must start at an edge
+            end point must end at an edge
+            Mouse left = add point
+            Mouse right = delete point
+            on first point, it only allows it to be added to the edge... the point just follows the edge based on mouse position
+                will need to figure out how to 
+                right clicking on the first point does nothing
+            on second+ points, the point follows the mouse pointer
+                right clicking unsets the last point and makes it the current point being placed
+                if the mouse pointer is outside of the image edge, the point is clamped the the edge
+            a = add mode
+                adds new points
+            e = edit mode
+                can select, move and delete points
+                    selection is done by having a circle (may or may not be visible) around the point pointer and can select a piont that is inside the circle
+                    left click selects the point
+                    once selected, it snaps to the mouse pointer location
+                    left click sets it again
+                    right click deletes the point
+
+World Engine:
+    Efficient Drawing (only draw what is in the Viewport) - this should work with the getPosition + getCamera functions...
+
+
+
+Game States:
+    Intro
+    Menu
+        Main
+        Settings
+    Game
+        Play!
+        Player Config (?? is this something I need?)
+        Pause (includes menu)
+    End Game
+
+Folder/File Layout
+    / - Lua source files
+    /Assets/
+    /Assets/Graphics/ - Image files
+    /Assets/Sounds/ - Sound files
+    /Data/
+    /Data/Levels/ - Level data (what would I need for this really??)
+    /Data/Players/ - Player related data
+    /Data/Enemies/ - Enemy related data
